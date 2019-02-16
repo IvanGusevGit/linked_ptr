@@ -5,6 +5,7 @@
 #ifndef LINKED_PTR_LINKED_PTR_H
 #define LINKED_PTR_LINKED_PTR_H
 
+#include <utility>
 
 namespace smart_ptr::details {
     struct linked_ptr_base {
@@ -14,20 +15,22 @@ namespace smart_ptr::details {
 }
 
 namespace smart_ptr {
-    template<typename T>
+    template <typename T>
     class linked_ptr : public smart_ptr::details::linked_ptr_base {
 
     protected:
+
+        template <typename U> friend class linked_ptr;
 
         typedef linked_ptr<T> this_type;
         T *stored_pointer;
 
         template<typename U>
-        void link(const linked_ptr<U> &linkedPtr) {
-            next = linkedPtr.next;
+        void link(const linked_ptr<U> &other) {
+            next = other.next;
             next->previous = this;
-            previous = const_cast<linked_ptr<U> *>(&linkedPtr);
-            linkedPtr.next = this;
+            previous = const_cast<linked_ptr<U> *>(&other);
+            other.next = this;
         }
 
     public:
@@ -54,8 +57,9 @@ namespace smart_ptr {
         linked_ptr(const linked_ptr<U> &other) : stored_pointer(other.stored_pointer) {
             if (stored_pointer)
                 link(other);
-            else
+            else {
                 previous = next = this;
+            }
         }
 
 
@@ -67,8 +71,9 @@ namespace smart_ptr {
         linked_ptr &operator=(const linked_ptr &linkedPtr) {
             if (linkedPtr.stored_pointer != stored_pointer) {
                 reset(linkedPtr.stored_pointer);
-                if (linkedPtr.stored_pointer)
+                if (linkedPtr.stored_pointer) {
                     link(linkedPtr);
+                }
             }
             return *this;
         }
@@ -190,37 +195,37 @@ namespace smart_ptr {
 
     };
 
-    template<class T, class U>
+    template<typename T, typename U>
     inline bool operator==(const linked_ptr<T> &a, const linked_ptr<U> &b) {
         return (a.get() == b.get());
     }
 
-    template<class T, class U>
+    template<typename T, typename U>
     inline bool operator!=(const linked_ptr<T> &a, const linked_ptr<U> &b) {
         return (a.get() != b.get());
     }
 
-    template<class T, class U>
+    template<typename T, typename U>
     inline bool operator<(const linked_ptr<T> &a, const linked_ptr<U> &b) {
         return (a.get() < b.get());
     }
 
-    template<class T, class U>
+    template<typename T, typename U>
     inline bool operator<=(const linked_ptr<T> &a, const linked_ptr<U> &b) {
         return (a.get() <= b.get());
     }
 
-    template<class T, class U>
+    template<typename T, typename U>
     inline bool operator>(const linked_ptr<T> &a, const linked_ptr<U> &b) {
         return (a.get() > b.get());
     }
 
-    template<class T, class U>
+    template<typename T, typename U>
     inline bool operator>=(const linked_ptr<T> &a, const linked_ptr<U> &b) {
         return (a.get() >= b.get());
     }
 
-    template<class U>
+    template<typename U>
     linked_ptr<U> make_linked(U *ptr) {
         return linked_ptr<U>(ptr);
     }
